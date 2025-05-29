@@ -1,6 +1,6 @@
 # Day 1: Advanced Data Structures for ML 🏗️
 
-![Day 1 Banner](../../public/day1.png)
+![Day 1 Banner](../public/day1.png)
 
 > *Building the foundation: Mastering data structures that power machine learning algorithms*
 
