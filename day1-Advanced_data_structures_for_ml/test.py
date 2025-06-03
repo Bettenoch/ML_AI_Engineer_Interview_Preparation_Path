@@ -40,4 +40,20 @@ pairs = [("a", 1), ("b", 1), ("c", 1), ("a", 2), ("c", 4),]
 for k, v in pairs:
     dy[k].append(v)
     
-print (dy)
+# print (dy)
+# Python example using feature hashing on text data
+
+# Python example of a simple feature hashing function
+def feature_hashing(feature, vector_size):
+    index = hash(feature) % vector_size
+    vector = [0] * vector_size
+    vector[index] = 1
+    return vector
+
+# Test the function
+print(feature_hashing("apple", 5))
+
+sentence = "The quick brown fox"
+vector_size = 10
+hashed_sentence = [feature_hashing(word, vector_size) for word in sentence.split()]
+print(hashed_sentence)
