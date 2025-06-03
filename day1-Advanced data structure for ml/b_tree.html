@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B-Tree Concepts</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .btree-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .node {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px;
+            border: 3px solid #4a5568;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f7fafc, #edf2f7);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .node:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+        
+        .node.root {
+            border-color: #e53e3e;
+            background: linear-gradient(135deg, #fed7d7, #feb2b2);
+        }
+        
+        .node.leaf {
+            border-color: #38a169;
+            background: linear-gradient(135deg, #c6f6d5, #9ae6b4);
+        }
+        
+        .node.full {
+            border-color: #d69e2e;
+            background: linear-gradient(135deg, #faf089, #f6e05e);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .node-keys {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .node-label {
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .level {
+            margin: 40px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .level-label {
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+        
+        .connection {
+            width: 2px;
+            height: 30px;
+            background: #4a5568;
+            margin: 0 auto;
+        }
+        
+        .concepts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+        
+        .concept-card {
+            background: linear-gradient(135deg, #ffffff, #f7fafc);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #667eea;
+            transition: transform 0.3s ease;
+        }
+        
+        .concept-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .concept-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        
+        .concept-description {
+            color: #4a5568;
+            line-height: 1.6;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+        
+        .example-section {
+            background: linear-gradient(135deg, #f0f8ff, #e6f3ff);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+            border: 2px solid #4299e1;
+        }
+        
+        .example-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2b6cb0;
+            margin-bottom: 15px;
+        }
+        
+        .highlight {
+            background: linear-gradient(135deg, #fef5e7, #fed7aa);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>B-Tree Concepts Interactive Guide</h1>
+        
+        <div class="example-section">
+            <div class="example-title">Example: B-Tree of Order 3 (Maximum 2 keys per node)</div>
+            <p>This example shows a B-tree where each node can have at most <span class="highlight">2 keys</span> and <span class="highlight">3 children</span>.</p>
+        </div>
+        
+        <div class="btree-container">
+            <div class="level">
+                <div class="level-label">Level 0 (Root)</div>
+                <div class="node root" data-concept="root">
+                    <div class="node-keys">[50]</div>
+                    <div class="node-label">Root Node</div>
+                </div>
+            </div>
+            
+            <div class="connection"></div>
+            
+            <div class="level">
+                <div class="level-label">Level 1 (Internal Nodes)</div>
+                <div class="node" data-concept="internal">
+                    <div class="node-keys">[20, 30]</div>
+                    <div class="node-label">Internal Node (Non-Full)</div>
+                </div>
+                <div class="node full" data-concept="full">
+                    <div class="node-keys">[60, 70]</div>
+                    <div class="node-label">Full Node (Max Keys)</div>
+                </div>
+            </div>
+            
+            <div class="connection"></div>
+            
+            <div class="level">
+                <div class="level-label">Level 2 (Leaf Nodes)</div>
+                <div class="node leaf" data-concept="leaf">
+                    <div class="node-keys">[10, 15]</div>
+                    <div class="node-label">Leaf Node</div>
+                </div>
+                <div class="node leaf" data-concept="leaf">
+                    <div class="node-keys">[25]</div>
+                    <div class="node-label">Leaf Node</div>
+                </div>
+                <div class="node leaf" data-concept="leaf">
+                    <div class="node-keys">[35, 40]</div>
+                    <div class="node-label">Leaf Node</div>
+                </div>
+                <div class="node leaf" data-concept="leaf">
+                    <div class="node-keys">[55]</div>
+                    <div class="node-label">Leaf Node</div>
+                </div>
+                <div class="node leaf" data-concept="leaf">
+                    <div class="node-keys">[65]</div>
+                    <div class="node-label">Leaf Node</div>
+                </div>
+                <div class="node leaf" data-concept="leaf">
+                    <div class="node-keys">[75, 80]</div>
+                    <div class="node-label">Leaf Node</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="showSplitExample()">Show Node Splitting Example</button>
+            <button class="btn" onclick="highlightConcepts()">Highlight All Concepts</button>
+        </div>
+        
+        <div class="concepts-grid">
+            <div class="concept-card">
+                <div class="concept-title">🔷 Node</div>
+                <div class="concept-description">
+                    A single unit in the B-tree that contains keys and references to child nodes. Each node has a maximum capacity defined by the tree's order.
+                    <br><br><strong>Example:</strong> [20, 30] is a node with 2 keys.
+                </div>
+            </div>
+            
+            <div class="concept-card">
+                <div class="concept-title">🌳 Tree</div>
+                <div class="concept-description">
+                    The entire B-tree structure consisting of all nodes organized in a hierarchical manner. It maintains balance and allows efficient searching, insertion, and deletion.
+                </div>
+            </div>
+            
+            <div class="concept-card">
+                <div class="concept-title">👶 Children</div>
+                <div class="concept-description">
+                    Nodes that are directly connected below another node. In a B-tree of order m, each internal node can have at most m children.
+                    <br><br><strong>Rule:</strong> Node with k keys has k+1 children.
+                </div>
+            </div>
+            
+            <div class="concept-card">
+                <div class="concept-title">🍃 Leaf Node</div>
+                <div class="concept-description">
+                    Nodes at the bottom level of the tree that have no children. All leaf nodes are at the same level in a B-tree, ensuring balance.
+                    <br><br><strong>Shown in green</strong> in the diagram above.
+                </div>
+            </div>
+            
+            <div class="concept-card">
+                <div class="concept-title">🌟 Root</div>
+                <div class="concept-description">
+                    The topmost node of the tree. It's the entry point for all operations. The root can have fewer keys than other nodes (minimum 1 key).
+                    <br><br><strong>Shown in red</strong> in the diagram above.
+                </div>
+            </div>
+            
+            <div class="concept-card">
+                <div class="concept-title">📦 Non-Full Child</div>
+                <div class="concept-description">
+                    A node that has fewer than the maximum allowed keys. These nodes can accommodate more keys without splitting.
+                    <br><br><strong>Example:</strong> [25] has only 1 key when max is 2.
+                </div>
+            </div>
+            
+            <div class="concept-card">
+                <div class="concept-title">⚠️ Full/Overflowing Child</div>
+                <div class="concept-description">
+                    A node that has reached its maximum capacity of keys. Attempting to add more keys requires splitting the node.
+                    <br><br><strong>Shown in yellow</strong> with pulsing animation above.
+                </div>
+            </div>
+            
+            <div class="concept-card">
+                <div class="concept-title">✂️ Splitting Child Nodes</div>
+                <div class="concept-description">
+                    When a full node needs to accommodate a new key, it splits into two nodes. The middle key moves up to the parent node.
+                    <br><br><strong>Process:</strong> Full node → Split → Two half-full nodes + middle key promoted.
+                </div>
+            </div>
+            
+            <div class="concept-card">
+                <div class="concept-title">🔢 Maximum Keys</div>
+                <div class="concept-description">
+                    The maximum number of keys a node can hold, determined by the tree's order. For a B-tree of order m, max keys = m-1.
+                    <br><br><strong>In our example:</strong> Order 3 → Max 2 keys per node.
+                </div>
+            </div>
+            
+            <div class="concept-card">
+                <div class="concept-title">🔗 Maximum Children</div>
+                <div class="concept-description">
+                    The maximum number of child nodes an internal node can have, equal to the tree's order m.
+                    <br><br><strong>Formula:</strong> Max children = Order of B-tree<br>
+                    <strong>In our example:</strong> Order 3 → Max 3 children per node.
+                </div>
+            </div>
+        </div>
+        
+        <div class="example-section" id="split-example" style="display: none;">
+            <div class="example-title">Node Splitting Example</div>
+            <p><strong>Scenario:</strong> Insert key 35 into a full leaf node [30, 40, 50]</p>
+            <div style="margin: 20px 0;">
+                <div style="display: inline-block; margin: 10px;">
+                    <div class="node full" style="margin: 5px;">
+                        <div class="node-keys">[30, 40, 50]</div>
+                        <div class="node-label">Full Node (Before)</div>
+                    </div>
+                    <div style="text-align: center;">Insert 35 ↓</div>
+                </div>
+                
+                <div style="display: inline-block; margin: 0 20px; font-size: 24px;">→</div>
+                
+                <div style="display: inline-block; margin: 10px;">
+                    <div class="node" style="margin: 5px;">
+                        <div class="node-keys">[30, 35]</div>
+                        <div class="node-label">Left Child</div>
+                    </div>
+                    <div class="node" style="margin: 5px;">
+                        <div class="node-keys">[40]</div>
+                        <div class="node-label">Promoted to Parent</div>
+                    </div>
+                    <div class="node" style="margin: 5px;">
+                        <div class="node-keys">[50]</div>
+                        <div class="node-label">Right Child</div>
+                    </div>
+                </div>
+            </div>
+            <p><strong>Result:</strong> Node splits, middle key (40) moves up to parent, creating balanced structure.</p>
+        </div>
+    </div>
+
+    <script>
+        function showSplitExample() {
+            const example = document.getElementById('split-example');
+            if (example.style.display === 'none') {
+                example.style.display = 'block';
+                example.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                example.style.display = 'none';
+            }
+        }
+        
+        function highlightConcepts() {
+            const nodes = document.querySelectorAll('.node');
+            nodes.forEach(node => {
+                node.style.transform = 'scale(1.1)';
+                node.style.transition = 'transform 0.5s ease';
+                setTimeout(() => {
+                    node.style.transform = 'scale(1)';
+                }, 1000);
+            });
+        }
+        
+        // Add click interactions for nodes
+        document.querySelectorAll('.node').forEach(node => {
+            node.addEventListener('click', function() {
+                const concept = this.getAttribute('data-concept');
+                const info = {
+                    'root': 'This is the ROOT node - the top of the tree. It can have 1 to max keys.',
+                    'internal': 'This is an INTERNAL node - it has both keys and children.',
+                    'leaf': 'This is a LEAF node - it has no children and stores actual data.',
+                    'full': 'This is a FULL node - it has the maximum number of keys (2 in this example).'
+                };
+                
+                if (info[concept]) {
+                    alert(info[concept]);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
