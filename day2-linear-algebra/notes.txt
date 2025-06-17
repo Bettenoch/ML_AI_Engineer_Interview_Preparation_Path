@@ -1,0 +1,46 @@
+Interview Approach: "Why PCA and What's the Goal?"
+Interviewer: "Build PCA from scratch using only NumPy"
+My Response: "PCA is a dimensionality reduction technique that finds the directions of maximum variance in data. Let me break this down into logical steps..."
+Step-by-Step Breakdown:
+Step 1: Data Centering
+Thinking: "PCA finds directions of maximum variance, but we need to center the data first so we're measuring variance around the true center, not around the origin."
+pythonself.mean_ = np.mean(X, axis=0)
+X_centered = X - self.mean_
+Why: If we don't center, the first principal component might just point toward the mean of the data rather than the direction of maximum variance.
+Step 2: Covariance Matrix
+Thinking: "The covariance matrix tells us how features vary together. Its eigenvectors will be our principal components."
+pythoncovariance_matrix = np.dot(X_centered.T, X_centered) / (n_samples - 1)
+Why: This is the mathematical foundation - the covariance matrix encodes all the relationships between features.
+Step 3: Eigendecomposition
+Thinking: "The eigenvectors of the covariance matrix are the principal components, and eigenvalues tell us how much variance each component explains."
+pythoneigenvalues, eigenvectors = np.linalg.eigh(covariance_matrix)
+Why: eigh is used because covariance matrices are symmetric and positive semi-definite.
+Step 4: Sorting
+Thinking: "We want the most important components first - those that explain the most variance."
+pythonidx = np.argsort(eigenvalues)[::-1]
+eigenvalues = eigenvalues[idx]
+eigenvectors = eigenvectors[:, idx]
+Why: eigh returns eigenvalues in ascending order, but we want descending order of importance.
+Step 5: Component Selection
+Thinking: "We might not need all components - dimensionality reduction is often the goal."
+pythonself.components_ = eigenvectors[:, :self.n_components].T
+Why: Taking only the top components achieves dimensionality reduction while retaining most variance.
+Step 6: Transformation
+Thinking: "To project data onto the new coordinate system, we multiply by the component matrix."
+pythonX_transformed = np.dot(X_centered, self.components_.T)
+Why: This is linear algebra - projecting vectors onto new basis vectors.
+Key Interview Points I'd Emphasize:
+
+Mathematical Foundation: "PCA is essentially finding the best coordinate system for your data based on variance."
+Computational Efficiency: "Using eigh instead of eig because we know the covariance matrix is symmetric."
+Practical Considerations: "Always center the data first, and consider how many components you actually need."
+Error Handling: "In production, I'd add checks for singular matrices and numerical stability."
+Scalability: "For very large datasets, we might use randomized PCA or incremental PCA approaches."
+
+Follow-up Questions I'd Anticipate:
+
+"How do you choose the number of components?" - "Look at explained variance ratio, use elbow method, or set a threshold like 95% variance explained."
+"What about numerical stability?" - "For very high-dimensional data, SVD-based PCA is more numerically stable than eigendecomposition."
+"Time complexity?" - "O(min(n²p, np²)) where n=samples, p=features, due to covariance matrix computation and eigendecomposition."
+
+The implementation shows both the mathematical understanding and practical coding skills, with clear explanations of each step's purpose.
